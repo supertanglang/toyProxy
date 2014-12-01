@@ -6,16 +6,16 @@
  */
 
 
-#include "network.h"
-#include "server.h"
-#include "config.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "network.h"
+#include "server.h"
+#include "config.h"
 
 
 // The main function 
