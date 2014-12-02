@@ -6,9 +6,15 @@
  */
 
 
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+
 #include <stdio.h>
 
 
-#define MAX_SERVERS 8
-#define MAX_STRLEN  32
+const int MAX_SERVERS = 8;
+const int MAX_STRLEN = 32;
 
+
+#endif
