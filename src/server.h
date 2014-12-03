@@ -12,10 +12,12 @@
 // server args configuration
 typedef struct server_conf
 {
-     // number of backend servers
-     int num;
-     // the portno of backend servers
-     int portno;
+    // number of backend servers
+    int backednnum;
+
+    // backend server hostnames
+    
+
+    // the portno of backend servers
+    int portno;
 } server_conf_t;
-
-
