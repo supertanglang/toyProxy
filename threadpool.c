@@ -120,16 +120,17 @@ static void *threadpool_function(void *threadpool)
           pool->queue_head = (pool->queue_head == pool->queue_size) ?
                0 : pool->queue_head;
           pool->working_count++;
+          pool->task_count--;
           
           // unlock
           pthread_mutex_unlock(&(pool->lock));
 
           // go to work
           (*task.task_func)(task.argument);
+          pool->working_count--;
      }
      
      // shutdown the thread
-     pool->thread_count--;
      pthread_mutex_unlock(&(pool->lock));
      pthread_exit(NULL);
 }
@@ -156,7 +157,7 @@ threadpool_t *threadpool_create(int thread_num, int queue_size)
 
      // malloc memory for task queue
      if ((pool->task_queue 
-          = (thread_task_t *)malloc(sizeof(pthread_t) * thread_num)) 
+          = (thread_task_t *)malloc(sizeof(pthread_t) * queue_size)) 
          == NULL){
           goto err;
      }
@@ -215,20 +216,21 @@ int threadpool_assign(threadpool_t *pool, void (*task_func)(void *),
      
      // acquire lock
      if (pthread_mutex_lock(&(pool->lock)) != 0) {
-          return -1;
+          goto err;
      }
      
      // find next available slot in queue
-     int next;
-     next = (pool->queue_tail == pool->queue_size) ? 0 : next + 1;
+     int next = pool->queue_tail + 1;
+     next = (next == pool->queue_size) ? 0 : next;
+
      // find if full
-     if (next == pool->queue_head) {
-          return -1;
+     if (pool->task_count == pool->queue_size) {
+          goto err;
      }
 
      // find if shutdown
      if (pool->shutdown) {
-          return -1;
+          goto err;
      }
 
      // add task to the queue
@@ -239,9 +241,10 @@ int threadpool_assign(threadpool_t *pool, void (*task_func)(void *),
 
      // signal the condition variable
      if (pthread_cond_signal(&(pool->notify)) != 0) {
-          return -1;
+          goto err;
      }
 
+err:
      // unlock the mutex
      if (pthread_mutex_unlock(&(pool->lock)) != 0) {
           return -1;
@@ -267,6 +270,8 @@ int threadpool_destroy(threadpool_t *pool)
      if (pool->shutdown) {
           return -1;
      }
+
+     pool->shutdown = 1;
      
      if (pthread_cond_broadcast(&(pool->notify)) != 0) {
           return -1;
