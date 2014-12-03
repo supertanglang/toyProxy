@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "threadpool.h"
 #include "network.h"
 #include "server.h"
 #include "config.h"
@@ -44,18 +45,57 @@ main(int argc, char **argv)
           backend_portno[i] = atoi(argv[i * 2 + 3]);
      }
      
-     // Init thread pool
-
-
-     
      // Start server procedure
+     // setup network, start server 
+     int serverfd;
+     server_arg_t server_arg;
 
+     // DEBUG
+     printf("[INFO] Starting server procedure\n");
 
+     if (serverfd = socket(AF_INET,
+                           SOCK_STREAM,
+                           0) < 0) {
+          perror("Error creating socket\n");
+          exit(1);
+     }
+     if (sock_bind_listen(serverfd, portno, MAX_CONNECT) < 0) {
+          perror("Error binding and listening to socket\n");
+          exit(1);
+     }
+     
+     // Init thread pool
+     threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
 
+     // Init server argument
+     // TODO
 
+     // DEBUG
+     printf("[INFO] Created server pool with %d threads and %d queue\n",
+            THREAD_NUM, THREADPOOL_SIZE);
+
+     // Main loop 
+     while (1) {
+          // accept new connection
+          int clientfd;
+
+          // accept and new thread
+          if ((clientfd = sock_accept(serverfd)) > 0) {
+               // hand new request to threads
+               server_arg.clientfd = clientfd;
+
+               threadpool_assign(pool, server_thread, server_arg);
+          }
+     }
+     
+     // DEBUG
+     printf("[INFO] Server procedure started\n");
 
      // Gracefully shutting down
+     threadpool_destroy(pool);
 
+     // DEBUG
+     printf("[INFO] Starting server procedure\n");
 
      return 0;
 }

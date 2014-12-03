@@ -19,23 +19,41 @@
 #include <netinet/in.h>
 
 
-// find hostname binary ip form from hostname
-unsigned long find_host_addr(char *hostname);
+// bind socket to portno
+// param sockfd - the listening socket fd
+// param portno - the portno
+// return 0 on success, -1 on any error
+int sock_bind_listen(int sockfd, int portno, int backlog);
 
-// find hostname char readable form
-char *find_host_ip(unsigned long host_in_addr);
+// accept new connections
+// param sockfd - the sever socket to accept
+// return client fd on success, -1 on any error
+int sock_accept(int sockfd);
 
-// create new udp socket
-int new_udp_sock();
+// nonblocking accept new connections
+// param sockfd - the sever socket to accept
+// return client fd on success, -1 on any error
+int sock_nonblocking_accept(int sockfd);
 
-// bind server to portno
-int udp_bind(int sockfd, int portno);
+// connect to dest server
+// param sockfd - the server socket to connect to
+// param dest_addr - the dest addr
+// param portno - the dest addr portno
+// return 0 on success, -1 on any error
+int sock_connect(int sockfd, char *dest_addr, int portno);
 
-// recv from a socket, return bin ip addr
-unsigned long sock_recvfrom(int sockfd, void *buffer, int size);
+// send http to socket
+// param sockfd - the sockfd to send to 
+// param buffer - the buffer to send
+// param size - the buffer size to send
+// return 0 on success, -1 on any error
+int send_buffer(int sockfd, char *buffer, int size);
 
-// send to a socket
-int sock_sendto(unsigned long host_inaddr, int portno, void *buffer, int size);
+// send http to socket
+// param sockfd - the sockfd to send to 
+// param buffer - the buffer to send
+// return the bytes recved on success, -1 on any error
+int recv_buffer(int sockfd, char *buffer);
 
 
 #endif
