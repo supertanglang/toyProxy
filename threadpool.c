@@ -157,7 +157,7 @@ threadpool_t *threadpool_create(int thread_num, int queue_size)
 
      // malloc memory for task queue
      if ((pool->task_queue 
-          = (thread_task_t *)malloc(sizeof(pthread_t) * queue_size)) 
+          = (thread_task_t *)malloc(sizeof(thread_task_t) * queue_size)) 
          == NULL){
           goto err;
      }
