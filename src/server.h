@@ -5,19 +5,42 @@
  * descript: Server related data structures and functions
  */
 
+
+#ifndef __SERVER_H__
+#define __SERVER_H__
+
+
 #include "network.h"
-#include "config.h"
 
 
-// server args configuration
+// default value config
+const int MAX_SERVERS = 8;
+
+// server thread configuration
 typedef struct server_conf
 {
-    // number of backend servers
-    int backednnum;
+    // client socket file
+    int clientsockfd;
 
-    // backend server hostnames
+    // backend server hostname
+    char *backend_hosts;
+
+    // the portno of backend server
+    int backend_port;
+
+    // delay of backend server response
+    float response;
+
+} server_conf_t;
+
+
+// server thread worker
+void server_thread(server_conf_t *server_conf)
+{
     
 
-    // the portno of backend servers
-    int portno;
-} server_conf_t;
+
+}
+
+
+#endif

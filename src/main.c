@@ -27,8 +27,9 @@ main(int argc, char **argv)
     int i;
     int num_servers;
     int portno;
-    char *backend_servers[MAX_SERVERS];
-    int backend_portno[MAX_SERVERS];
+    char *backend_hosts[MAX_SERVERS];
+    int backend_port[MAX_SERVERS];
+
 
     // if not enough number of servers or too many servers
     num_servers = (argc - 2) / 2;
@@ -41,16 +42,26 @@ main(int argc, char **argv)
     // Read in configs
     portno = atoi(argv[1]);
     for (i = 0; i < num_servers ; ++i) {
-        backend_servers[i] = argv[i * 2 + 2];
-        backend_portno[i] = atoi(argv[i * 2 + 3]);
+        backend_hosts[i] = argv[i * 2 + 2];
+        backend_port[i] = atoi(argv[i * 2 + 3]);
     }
 
     // Start server procedure
     // setup network, start server
     int serverfd;
-    server_arg_t server_arg;
+    server_conf_t server_conf;
     balancer_t balancer;
     unsigned backend_rotate;
+
+    // Init balancer
+    balancer_init(server_num, &balancer);
+
+    // Init thread pool
+    threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
+
+    // DEBUG
+    printf("[INFO] Created server pool with %d threads and %d queue\n",
+           THREAD_NUM, THREADPOOL_SIZE);
 
     // DEBUG
     printf("[INFO] Starting server procedure\n");
@@ -66,35 +77,28 @@ main(int argc, char **argv)
         exit(1);
     }
 
-    // Init thread pool
-    threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
-
-    // Init balancer
-    balancer_init(&balancer);
-
-    // Init server argument
-    server_arg.
-
-        // DEBUG
-        printf("[INFO] Created server pool with %d threads and %d queue\n",
-               THREAD_NUM, THREADPOOL_SIZE);
+    // DEBUG
+    printf("[INFO] Server procedure started\n");
 
     // Main loop
     while (1) {
         // accept new connection
         int clientfd;
+        int server_index;
+        float response;
+
+        server_index = balancer_balance(&balancer);
 
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {
             // hand new request to threads
-            server_arg.clientfd = clientfd;
+            server_conf.clientfd = clientfd;
 
-            threadpool_assign(pool, server_thread, server_arg);
+            threadpool_assign(pool, server_thread, &server_conf);
         }
+        // get server response  
+        balancer.response[server_index] = server_conf.response;
     }
-
-    // DEBUG
-    printf("[INFO] Server procedure started\n");
 
     // Gracefully shutting down
     threadpool_destroy(pool);
