@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "threadpool.h"
+#include "balancer.h"
 #include "network.h"
 #include "server.h"
 #include "config.h"
@@ -54,7 +55,7 @@ main(int argc, char **argv)
     unsigned backend_rotate;
 
     // Init balancer
-    balancer_init(server_num, &balancer);
+    balancer_init(num_servers, &balancer);
 
     // Init thread pool
     threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
@@ -90,9 +91,9 @@ main(int argc, char **argv)
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {
             // hand new request to threads
-            server_conf.clientfd = clientfd;
+            server_conf.clientsockfd = clientfd;
 
-            threadpool_assign(pool, server_thread, &server_conf);
+            threadpool_assign(pool, server_thread, (void *)&server_conf);
         }
         // get server response  
         balancer.response[server_index] = server_conf.response;

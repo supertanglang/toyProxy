@@ -32,7 +32,7 @@ typedef struct server_conf
 
 
 // server thread worker
-void server_thread(server_conf_t *server_conf);
+void server_thread(void *_server_conf);
 
 
 #endif

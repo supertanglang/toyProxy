@@ -13,8 +13,9 @@
 
 
 // server thread worker
-void server_thread(server_conf_t *server_conf)
+void server_thread(void *_server_conf)
 {
+    server_conf_t *server_conf = (server_conf_t *)_server_conf;
     int clientsockfd = server_conf->clientsockfd;
     int backendsockfd = socket_connect(server_conf->backend_host,
                                        server_conf->backend_port);
