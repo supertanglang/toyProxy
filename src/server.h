@@ -10,9 +10,6 @@
 #define __SERVER_H__
 
 
-#include "network.h"
-
-
 // default value config
 const int MAX_SERVERS = 8;
 
@@ -23,7 +20,7 @@ typedef struct server_conf
     int clientsockfd;
 
     // backend server hostname
-    char *backend_hosts;
+    char *backend_host;
 
     // the portno of backend server
     int backend_port;
@@ -35,12 +32,7 @@ typedef struct server_conf
 
 
 // server thread worker
-void server_thread(server_conf_t *server_conf)
-{
-    
-
-
-}
+void server_thread(server_conf_t *server_conf);
 
 
 #endif

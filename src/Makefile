@@ -4,7 +4,7 @@ SRC := src
 CFLAGS := -c -g
 LDFLAGS := -lpthread -g
 
-BIN := query_flood
+BIN := toyProxy_
 SRCS := %.c
 OBJ := main.o sender.o server.o adt.o network.o
 

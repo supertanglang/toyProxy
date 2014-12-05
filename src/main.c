@@ -59,11 +59,11 @@ main(int argc, char **argv)
     // Init thread pool
     threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
 
-    // DEBUG
+    // creating server thread pool
     printf("[INFO] Created server pool with %d threads and %d queue\n",
            THREAD_NUM, THREADPOOL_SIZE);
 
-    // DEBUG
+    // starting server procedure
     printf("[INFO] Starting server procedure\n");
 
     if (serverfd = socket(AF_INET,
@@ -76,8 +76,6 @@ main(int argc, char **argv)
         perror("Error binding and listening to socket\n");
         exit(1);
     }
-
-    // DEBUG
     printf("[INFO] Server procedure started\n");
 
     // Main loop

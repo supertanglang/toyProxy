@@ -19,6 +19,9 @@
 #include <netinet/in.h>
 
 
+const int MAX_BUFFER = 4098;
+
+
 // bind socket to portno
 // param sockfd - the listening socket fd
 // param portno - the portno
@@ -36,11 +39,10 @@ int sock_accept(int sockfd);
 int sock_nonblocking_accept(int sockfd);
 
 // connect to dest server
-// param sockfd - the server socket to connect to
 // param dest_addr - the dest addr
 // param portno - the dest addr portno
-// return 0 on success, -1 on any error
-int sock_connect(int sockfd, char *dest_addr, int portno);
+// return server fd on success, -1 on any error
+int sock_connect(char *dest_addr, int portno);
 
 // send http to socket
 // param sockfd - the sockfd to send to 

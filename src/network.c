@@ -70,8 +70,9 @@ int sock_nonblocking_accept(int sockfd)
 // param dest_addr - the dest addr
 // param portno - the dest addr portno
 // return 0 on success, -1 on any error
-int sock_connect(int sockfd, char *dest_addr, int portno)
+int sock_connect(char *dest_addr, int portno)
 {
+    int sockfd;
     struct hostent *server;
     struct sockaddr_in serv_addr;
      
@@ -81,17 +82,23 @@ int sock_connect(int sockfd, char *dest_addr, int portno)
      
     bzero((char *)&serv_addr, sizeof serv_addr);
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)serv->h_addr,
+    bcopy((char *)server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
     serv_addr.sin_port = htons(atoi(portno));
      
+    if (sockfd = socket(AF_INET,
+                        SOCK_STREAM,
+                        0) < 0) {
+        return -1;
+    }
+
     if (connect(sockfd,
                 (struct sockaddr *)&serv_addr,
                 sizeof serv_addr) < 0) {
         return -1;
     }
-    return 0;
+    return sockfd;
 }
 
 
