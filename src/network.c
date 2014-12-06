@@ -106,11 +106,20 @@ int sock_connect(char *dest_addr, int portno)
 // param sockfd - the sockfd to send to
 // param buffer - the buffer to send
 // param size - the buffer size to send
-// return 0 on success, -1 on any error
+// return bytes sent on success, -1 on any error
 int send_buffer(int sockfd, char *buffer, int size)
 {
-     
+    int allsent = 0;
+    int sent;
 
+    while (allsent < size) {
+        sent = send(sockfd, buffer, size, 0);
+        if (sent < 0) {
+            return -1;
+        }
+        allsent += sent;
+    }
+    return allsent;
 }
 
 
@@ -120,8 +129,17 @@ int send_buffer(int sockfd, char *buffer, int size)
 // return the bytes recved on success, -1 on any error
 int recv_buffer(int sockfd, char *buffer)
 {
-     
+    int allrecved = 0;
+    int recved;
+    int pointer;
+    
+    memset(buffer, 0, BUFFERSIZE);
 
+    while (1) {
+        
 
+    }
+
+    return allrecved;
 }
 
