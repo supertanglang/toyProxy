@@ -19,7 +19,7 @@
 #include <netinet/in.h>
 
 
-const int MAX_BUFFER = 4098;
+#define NET_BUFFER 4098
 
 
 // bind socket to portno

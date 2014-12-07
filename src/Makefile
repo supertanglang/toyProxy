@@ -4,9 +4,9 @@ SRC := src
 CFLAGS := -c -g
 LDFLAGS := -lpthread -g
 
-BIN := toyProxy_
+BIN := toyProxy.out
 SRCS := %.c
-OBJ := main.o sender.o server.o adt.o network.o
+OBJ := main.o balancer.o network.o server.o threadpool.o
 
 
 $(BIN): $(OBJ)

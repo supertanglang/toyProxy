@@ -133,13 +133,50 @@ int recv_buffer(int sockfd, char *buffer)
     int recved;
     int pointer;
     
-    memset(buffer, 0, BUFFERSIZE);
+    memset(buffer, 0, NET_BUFFER);
 
     while (1) {
+        recved = recv(sockfd, buffer + allrecved, 
+                      NET_BUFFER - allrecved, 0);
+
+        allrecved += recved;
         
-
+        if (recved < 0) {
+            return -1;
+        }
+        if (allrecved == NET_BUFFER) {
+            break;
+        }
+        if (recved == 0) {
+            break;
+        }
+        if (strstr(buffer, "\r\n\r\n") ||
+            strstr(buffer, "\n\n\n\n") ||
+            strstr(buffer, "\r\r\r\r")) {
+            break;
+        }
     }
-
+    
     return allrecved;
 }
 
+
+// simple http parser, find the return size of the 
+// received buffer
+// param: buffer - the buffer of the received info
+// return: the total http response size, 0 if not found, -1 if error
+/* int find_http_size(char *buffer) { */
+/*     char *index; */
+/*     char num_buffer[8]; */
+/*     char c, next; */
+
+/*     index = strstr(buffer, "Content-Length:"); */
+
+/*     if (index == NULL) { */
+/*         return 0; */
+/*     } */
+    
+    
+
+
+/* } */

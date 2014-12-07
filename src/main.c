@@ -86,7 +86,8 @@ main(int argc, char **argv)
         int server_index;
         float response;
 
-        server_index = balancer_balance(&balancer);
+        balancer_balance(&balancer);
+        server_index = balancer.index;
 
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {

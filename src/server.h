@@ -11,7 +11,7 @@
 
 
 // default value config
-const int MAX_SERVERS = 8;
+#define MAX_SERVERS 8
 
 // server thread configuration
 typedef struct server_conf

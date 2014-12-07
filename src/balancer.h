@@ -11,6 +11,7 @@
 
 
 #define SERVERS 8
+#define MIN_RESPONSE 0.01
 
 
 typedef struct balancer
@@ -29,11 +30,10 @@ typedef struct balancer
 // init the balancer
 // param: balancer - the balancer struct
 // return 0 on success, -1 on error
-int balancer_init(int server_num, balancer_t *balancer);
+void balancer_init(int server_num, balancer_t *balancer);
 
 // balance the load, find the next index
-int balancer_balance(balancer_t *balancer);
-
+void balancer_balance(balancer_t *balancer);
 
 
 #endif

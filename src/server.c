@@ -17,40 +17,65 @@ void server_thread(void *_server_conf)
 {
     server_conf_t *server_conf = (server_conf_t *)_server_conf;
     int clientsockfd = server_conf->clientsockfd;
-    int backendsockfd = socket_connect(server_conf->backend_host,
+    int backendsockfd = sock_connect(server_conf->backend_host,
                                        server_conf->backend_port);
     int recved;
-    char buffer[MAX_BUFFER];
+    char buffer[NET_BUFFER];
     float response;
+    int err = 0;
+
     struct timeval timer1, timer2;
-        
-    // recv request from client
-    if ((recved = recv_buffer(clientsockfd, buffer)) < 0) {
-        return;
+
+    while (1) {
+        // recv request from client
+        if ((recved = recv_buffer(clientsockfd, buffer)) < 0) {
+            err |= 1;
+            break;
+        }
+
+        // if end of recving
+        if (recved == 0) {
+            break;
+        }
+
+        // request from backend host
+        if (send_buffer(backendsockfd, buffer, recved) < 0) {
+            err |= 1;
+            break;
+        }
     }
-    
+
     gettimeofday(&timer1, NULL);
-    
-    // request from backend host
-    if (send_buffer(backendsockfd, buffer, recved) != 0) {
-        return;
-    }
-    
-    // recv response from backend host
-    if ((recved = recv_buffer(backendsockfd, buffer)) < 0) {
-        return;
-    }
+
+    while (1) {
+        // recv response from backend host
+        if ((recved = recv_buffer(backendsockfd, buffer)) < 0) {
+            err |= 1;
+            break;
+        }
+
+        // if end of the receving
+        if (recved == 0) {
+            break;
+        }
+
+        // respond to client
+        if (send_buffer(clientsockfd, buffer, recved) < 0) {
+            err |= 1;
+            break;
+        }
+    }    
 
     gettimeofday(&timer2, NULL);
 
-    // respond to client
-    if (send_buffer(clientsockfd, buffer, recved) < 0) {
-        return;
-    }
-
     // coarsely estimate server response time
-    response = (timer2.tv_sec - timer1.tv_sec) * 1.0 
-               + (timer2.tv_usec - timer2.tv_usec) * 1000000;
-    
-    server_conf->response = response;
+    response += (timer2.tv_sec - timer1.tv_sec) * 1000 
+        + (timer2.tv_usec - timer2.tv_usec) / 1000;
+
+    if (!err) {
+        server_conf->response = response;
+    }
+    else {
+        server_conf->response = -1;
+    }
 }
