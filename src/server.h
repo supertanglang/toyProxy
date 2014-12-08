@@ -19,7 +19,13 @@ typedef struct server_conf
     // client socket file
     int clientsockfd;
 
-    // backend server hostname
+    // backend server index
+    int backend_index;
+
+    // backend server socketfd
+    int backend_fd[MAX_SERVERS];
+
+    // backend server names
     char *backend_host;
 
     // the portno of backend server

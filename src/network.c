@@ -27,6 +27,7 @@ int sock_bind_listen(int sockfd, int portno, int backlog)
              sizeof serv_addr) < 0) {
         return -1;
     }
+
     if (listen(sockfd, backlog) < 0) {
         return -1;
     }
@@ -75,7 +76,7 @@ int sock_connect(char *dest_addr, int portno)
     int sockfd;
     struct hostent *server;
     struct sockaddr_in serv_addr;
-     
+
     if ((server = gethostbyname(dest_addr)) == NULL) {
         return -1;
     }
@@ -85,11 +86,11 @@ int sock_connect(char *dest_addr, int portno)
     bcopy((char *)server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
-    serv_addr.sin_port = htons(atoi(portno));
+    serv_addr.sin_port = htons(portno);
      
-    if (sockfd = socket(AF_INET,
-                        SOCK_STREAM,
-                        0) < 0) {
+    if ((sockfd = socket(AF_INET,
+                         SOCK_STREAM,
+                         0)) < 0) {
         return -1;
     }
 
@@ -98,6 +99,7 @@ int sock_connect(char *dest_addr, int portno)
                 sizeof serv_addr) < 0) {
         return -1;
     }
+
     return sockfd;
 }
 
@@ -114,7 +116,7 @@ int send_buffer(int sockfd, char *buffer, int size)
 
     while (allsent < size) {
         sent = send(sockfd, buffer, size, 0);
-        if (sent < 0) {
+        if (sent <= 0) {
             return -1;
         }
         allsent += sent;
@@ -151,8 +153,8 @@ int recv_buffer(int sockfd, char *buffer)
             break;
         }
         if (strstr(buffer, "\r\n\r\n") ||
-            strstr(buffer, "\n\n\n\n") ||
-            strstr(buffer, "\r\r\r\r")) {
+            strstr(buffer, "\n\n") ||
+            strstr(buffer, "\r\r")) {
             break;
         }
     }

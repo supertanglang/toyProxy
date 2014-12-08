@@ -19,7 +19,7 @@
 #include <netinet/in.h>
 
 
-#define NET_BUFFER 4098
+#define NET_BUFFER 512
 
 
 // bind socket to portno

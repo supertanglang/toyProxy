@@ -31,7 +31,6 @@ main(int argc, char **argv)
     char *backend_hosts[MAX_SERVERS];
     int backend_port[MAX_SERVERS];
 
-
     // if not enough number of servers or too many servers
     num_servers = (argc - 2) / 2;
     if (argc < 4 || num_servers > MAX_SERVERS || argc % 2) {
@@ -53,31 +52,34 @@ main(int argc, char **argv)
     server_conf_t server_conf;
     balancer_t balancer;
     unsigned backend_rotate;
+    threadpool_t *pool;
 
     // Init balancer
     balancer_init(num_servers, &balancer);
 
     // Init thread pool
-    threadpool_t *pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
+    pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
 
     // creating server thread pool
     printf("[INFO] Created server pool with %d threads and %d queue\n",
            THREAD_NUM, THREADPOOL_SIZE);
 
     // starting server procedure
-    printf("[INFO] Starting server procedure\n");
+    // Connect to the backend
 
-    if (serverfd = socket(AF_INET,
+    // Starting binding and listening
+    printf("[INFO] Starting server procedure\n");
+    if ((serverfd = socket(AF_INET,
                           SOCK_STREAM,
-                          0) < 0) {
+                           0)) < 0) {
         perror("Error creating socket\n");
         exit(1);
     }
+
     if (sock_bind_listen(serverfd, portno, MAX_CONNECT) < 0) {
         perror("Error binding and listening to socket\n");
         exit(1);
     }
-    printf("[INFO] Server procedure started\n");
 
     // Main loop
     while (1) {
@@ -89,8 +91,14 @@ main(int argc, char **argv)
         balancer_balance(&balancer);
         server_index = balancer.index;
 
+        // setup server
+        server_conf.backend_host = backend_hosts[server_index];
+        server_conf.backend_port = backend_port[server_index];
+
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {
+            printf("[INFO] Accepting new connection\n");
+           
             // hand new request to threads
             server_conf.clientsockfd = clientfd;
 

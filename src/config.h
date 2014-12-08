@@ -16,9 +16,9 @@
 #define DEBUG
 
 
-const int MAX_CONNECT = 1000;
-const int THREAD_NUM = 1000;
-const int THREADPOOL_SIZE = 2000;
+const int MAX_CONNECT = 800;
+const int THREAD_NUM = 30;
+const int THREADPOOL_SIZE = 30;
 
 
 #endif

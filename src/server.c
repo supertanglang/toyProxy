@@ -10,6 +10,8 @@
 
 #include "server.h"
 #include "network.h"
+#include "stdio.h"
+#include "string.h"
 
 
 // server thread worker
@@ -17,8 +19,7 @@ void server_thread(void *_server_conf)
 {
     server_conf_t *server_conf = (server_conf_t *)_server_conf;
     int clientsockfd = server_conf->clientsockfd;
-    int backendsockfd = sock_connect(server_conf->backend_host,
-                                       server_conf->backend_port);
+    int backendsockfd;
     int recved;
     char buffer[NET_BUFFER];
     float response;
@@ -26,23 +27,34 @@ void server_thread(void *_server_conf)
 
     struct timeval timer1, timer2;
 
-    while (1) {
-        // recv request from client
-        if ((recved = recv_buffer(clientsockfd, buffer)) < 0) {
-            err |= 1;
-            break;
-        }
+    printf("[DEBUG] A new thread is assigned!\n");
 
-        // if end of recving
-        if (recved == 0) {
-            break;
-        }
+    printf("[DEBUG] Connecting to %s : %d!\n", server_conf->backend_host,
+           server_conf->backend_port);
 
-        // request from backend host
-        if (send_buffer(backendsockfd, buffer, recved) < 0) {
-            err |= 1;
-            break;
-        }
+    if ((backendsockfd = sock_connect(server_conf->backend_host,
+                                      server_conf->backend_port)) < 0) {
+        printf("Error connecting to server\n");
+        return;
+    }
+
+    // recv request from client
+    if ((recved = recv_buffer(clientsockfd, buffer)) < 0) {
+        err |= 1;
+        return;
+    }
+
+    puts(buffer);
+
+    // if end of recving
+    if (recved == 0) {
+        return;
+    }
+
+    // request from backend host
+    if (send_buffer(backendsockfd, buffer, recved) < 0) {
+        err |= 1;
+        return;
     }
 
     gettimeofday(&timer1, NULL);
@@ -54,19 +66,20 @@ void server_thread(void *_server_conf)
             break;
         }
 
-        // if end of the receving
-        if (recved == 0) {
-            break;
-        }
+        printf("[DEBUG] recved from backend server %d\n", recved);
 
         // respond to client
         if (send_buffer(clientsockfd, buffer, recved) < 0) {
             err |= 1;
             break;
         }
-    }    
 
-    gettimeofday(&timer2, NULL);
+        // if end of the receving
+        if (recved < NET_BUFFER) {
+            break;
+        }
+        gettimeofday(&timer2, NULL);
+    }
 
     // coarsely estimate server response time
     response += (timer2.tv_sec - timer1.tv_sec) * 1000 
@@ -78,4 +91,8 @@ void server_thread(void *_server_conf)
     else {
         server_conf->response = -1;
     }
+
+    printf("[DEBUG] Closing connectiion\n");
+    close(backendsockfd);
+    close(clientsockfd);
 }
