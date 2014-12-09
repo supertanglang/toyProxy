@@ -25,11 +25,6 @@ void server_thread(void *_server_conf)
     int err = 0;
     struct timeval timer1, timer2;
 
-    // printf("[DEBUG] A new thread is assigned!\n");
-
-    printf("[DEBUG] Connecting to %s : %d!\n", server_conf->backend_host,
-           server_conf->backend_port);
-
     if ((backendsockfd = sock_connect(server_conf->backend_host,
                                       server_conf->backend_port)) < 0) {
         printf("Error connecting to server\n");

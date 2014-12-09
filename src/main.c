@@ -49,10 +49,12 @@ main(int argc, char **argv)
         backend_port[i] = atoi(argv[host_index + 1]);
         weights[i] = atoi(argv[host_index + 2]);
 
+#ifdef DEBUG
         printf("[DEBUG] server %s:%d weight %d\n",
                backend_hosts[i],
                backend_port[i],
                weights[i]);
+#endif
     }
 
     // Start server procedure
@@ -86,12 +88,12 @@ main(int argc, char **argv)
     if ((serverfd = socket(AF_INET,
                            SOCK_STREAM,
                            0)) < 0) {
-        perror("Error creating socket\n");
+        perror("[ERROR] Error creating socket\n");
         exit(1);
     }
 
     if (sock_bind_listen(serverfd, portno, MAX_CONNECT) < 0) {
-        perror("Error binding and listening to socket\n");
+        perror("[ERROR] Error binding and listening to socket\n");
         exit(1);
     }
 
@@ -107,7 +109,9 @@ main(int argc, char **argv)
         server_conf.backend_host = backend_hosts[balancer.index];
         server_conf.backend_port = backend_port[balancer.index];
 
-        printf("balancer index %d out of %d servers\n", balancer.index, balancer.server_num);
+#ifdef DEBUG
+        printf("[DEBUG] balancer index %d out of %d servers\n", balancer.index, balancer.server_num);
+#endif
 
         // setup connection number
         pthread_mutex_lock(&(server_conf.lock));
@@ -117,7 +121,10 @@ main(int argc, char **argv)
 
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {
+
+#ifdef DEBUG
             printf("[INFO] Accepting new connection\n");
+#endif
            
             // hand new request to threads
             server_conf.clientsockfd = clientfd;

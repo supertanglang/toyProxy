@@ -46,7 +46,10 @@ void balancer_balance(balancer_t *balancer, server_conf_t *server_conf)
     min_weight = (float)server_conf->connections[index] / (float)balancer->weights[index];
     for (i = 0; i < balancer->server_num; ++i) {
 
-        printf("server %d has %d connections\n", i, server_conf->connections[i]);
+#ifdef DEBUG
+        printf("[DEBUG] server %d has %d connections\n", i, server_conf->connections[i]);
+#endif
+
         weight = (float)server_conf->connections[i] / (float)balancer->weights[i];
         if (weight < min_weight) {
             min_weight = weight;
