@@ -28,7 +28,7 @@ typedef struct server_conf
     int clientsockfd;
 
     // backend server index
-    int backend_index;
+    int index;
 
     // backend server socketfd
     int backend_fd[MAX_SERVERS];
@@ -39,8 +39,11 @@ typedef struct server_conf
     // the portno of backend server
     int backend_port;
 
-    // delay of backend server response
-    float response;
+    // total connections;
+    int total_conn;
+
+    // the connections for each server
+    int connections[MAX_SERVERS];
 
 } server_conf_t;
 

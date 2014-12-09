@@ -30,20 +30,29 @@ main(int argc, char **argv)
     int portno;
     char *backend_hosts[MAX_SERVERS];
     int backend_port[MAX_SERVERS];
+    int weights[MAX_SERVERS];
 
     // if not enough number of servers or too many servers
-    num_servers = (argc - 2) / 2;
-    if (argc < 4 || num_servers > MAX_SERVERS || argc % 2) {
-        fprintf(stderr, "Usage: %s PROXY_PORTNO [BACKEND_ADDR PORTNO]...\n"
+    num_servers = (argc - 2) / 3;
+    if (argc < 4 || num_servers > MAX_SERVERS || (argc - 2) % 3) {
+        fprintf(stderr, "Usage: %s PROXY_PORTNO [BACKEND_ADDR PORTNO WEIGHT]...\n"
                 "MAX server num: %d\n", argv[0], MAX_SERVERS);
         exit(1);
     }
 
     // Read in configs
     portno = atoi(argv[1]);
-    for (i = 0; i < num_servers ; ++i) {
-        backend_hosts[i] = argv[i * 2 + 2];
-        backend_port[i] = atoi(argv[i * 2 + 3]);
+    for (i = 0; i < num_servers; ++i) {
+        int host_index = i * 3 + 2;
+
+        backend_hosts[i] = argv[host_index];
+        backend_port[i] = atoi(argv[host_index + 1]);
+        weights[i] = atoi(argv[host_index + 2]);
+
+        printf("[DEBUG] server %s:%d weight %d\n",
+               backend_hosts[i],
+               backend_port[i],
+               weights[i]);
     }
 
     // Start server procedure
@@ -55,7 +64,7 @@ main(int argc, char **argv)
     threadpool_t *pool;
 
     // Init balancer
-    balancer_init(num_servers, &balancer);
+    balancer_init(&balancer, num_servers, weights);
 
     // Init thread pool
     pool = threadpool_create(THREAD_NUM, THREADPOOL_SIZE);
@@ -64,14 +73,18 @@ main(int argc, char **argv)
     printf("[INFO] Created server pool with %d threads and %d queue\n",
            THREAD_NUM, THREADPOOL_SIZE);
 
-    // starting server procedure
-    // setup server config
+    // Init server config
     pthread_mutex_init(&(server_conf.lock), NULL);
+    server_conf.total_conn = 0;
+    for (i = 0; i < num_servers; ++i) {
+        server_conf.connections[i] = 0;
+    }
 
+    // starting server procedure
     // Starting binding and listening
     printf("[INFO] Starting server procedure\n");
     if ((serverfd = socket(AF_INET,
-                          SOCK_STREAM,
+                           SOCK_STREAM,
                            0)) < 0) {
         perror("Error creating socket\n");
         exit(1);
@@ -86,15 +99,21 @@ main(int argc, char **argv)
     while (1) {
         // accept new connection
         int clientfd;
-        int server_index;
-        float response;
-
-        balancer_balance(&balancer);
-        server_index = balancer.index;
 
         // setup server
-        server_conf.backend_host = backend_hosts[server_index];
-        server_conf.backend_port = backend_port[server_index];
+        balancer_balance(&balancer, &server_conf);
+
+        server_conf.index = balancer.index;
+        server_conf.backend_host = backend_hosts[balancer.index];
+        server_conf.backend_port = backend_port[balancer.index];
+
+        printf("balancer index %d out of %d servers\n", balancer.index, balancer.server_num);
+
+        // setup connection number
+        pthread_mutex_lock(&(server_conf.lock));
+        server_conf.connections[balancer.index]++;
+        server_conf.total_conn++;
+        pthread_mutex_unlock(&(server_conf.lock));
 
         // accept and new thread
         if ((clientfd = sock_accept(serverfd)) > 0) {
@@ -105,15 +124,13 @@ main(int argc, char **argv)
 
             threadpool_assign(pool, server_thread, (void *)&server_conf);
         }
-        // get server response  
-        balancer.response[server_index] = server_conf.response;
     }
 
     // Gracefully shutting down
     threadpool_destroy(pool);
 
     // DEBUG
-    printf("[INFO] Starting server procedure\n");
+    printf("[INFO] closing procedure\n");
 
     pthread_mutex_destroy(&(server_conf.lock));
 
