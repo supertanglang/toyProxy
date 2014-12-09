@@ -13,12 +13,12 @@
 #include <stdio.h>
 
 
-//#define DEBUG
+#define DEBUG
 
 
-const int MAX_CONNECT = 200;
-const int THREAD_NUM = 200;
-const int THREADPOOL_SIZE = 200;
+#define MAX_CONNECT 200
+#define THREAD_NUM 200
+#define THREADPOOL_SIZE 200
 
 
 #endif

@@ -10,6 +10,7 @@
 #include "network.h"
 #include "stdio.h"
 #include "string.h"
+#include "config.h"
 
 
 // server thread worker
@@ -27,7 +28,10 @@ void server_thread(void *_server_conf)
 
     if ((backendsockfd = sock_connect(server_conf->backend_host,
                                       server_conf->backend_port)) < 0) {
-        printf("Error connecting to server\n");
+#ifdef DEBUG
+        printf("[ERROR] Error connecting to server\n");
+#endif
+
         goto exit;
     }
 
@@ -41,6 +45,10 @@ void server_thread(void *_server_conf)
     if (recved == 0) {
         goto exit;
     }
+
+    memset(buffer, NET_BUFFER, 0);
+    strcpy(buffer, "GET / HTTP/1.0\r\n\r\n");
+    puts(buffer);
 
     // request from backend host
     if (send_buffer(backendsockfd, buffer, recved) < 0) {
@@ -68,7 +76,9 @@ void server_thread(void *_server_conf)
         }
     }
 
-    // printf("[DEBUG] Closing connectiion\n");
+#ifdef DEBUG
+    printf("[DEBUG] Closing connectiion\n");
+#endif
 
     // closing connections
     close(backendsockfd);
