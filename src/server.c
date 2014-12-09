@@ -22,15 +22,14 @@ void server_thread(void *_server_conf)
     int backendsockfd;
     int recved;
     char buffer[NET_BUFFER];
-    float response;
+    float response = RESPONSE;
     int err = 0;
-
     struct timeval timer1, timer2;
 
-    printf("[DEBUG] A new thread is assigned!\n");
+    // printf("[DEBUG] A new thread is assigned!\n");
 
-    printf("[DEBUG] Connecting to %s : %d!\n", server_conf->backend_host,
-           server_conf->backend_port);
+    // printf("[DEBUG] Connecting to %s : %d!\n", server_conf->backend_host,
+    //         server_conf->backend_port);
 
     if ((backendsockfd = sock_connect(server_conf->backend_host,
                                       server_conf->backend_port)) < 0) {
@@ -58,15 +57,21 @@ void server_thread(void *_server_conf)
     }
 
     gettimeofday(&timer1, NULL);
+    int flag = 1;
 
     while (1) {
+        flag = 0;
+
         // recv response from backend host
         if ((recved = recv_buffer(backendsockfd, buffer)) < 0) {
             err |= 1;
             break;
         }
 
-        printf("[DEBUG] recved from backend server %d\n", recved);
+        // only record the first time
+        if (flag) {
+            gettimeofday(&timer2, NULL);
+        }
 
         // respond to client
         if (send_buffer(clientsockfd, buffer, recved) < 0) {
@@ -78,7 +83,6 @@ void server_thread(void *_server_conf)
         if (recved < NET_BUFFER) {
             break;
         }
-        gettimeofday(&timer2, NULL);
     }
 
     // coarsely estimate server response time
@@ -86,13 +90,13 @@ void server_thread(void *_server_conf)
         + (timer2.tv_usec - timer2.tv_usec) / 1000;
 
     if (!err) {
+        pthread_mutex_lock(&(server_conf->lock));
         server_conf->response = response;
-    }
-    else {
-        server_conf->response = -1;
+        pthread_mutex_unlock(&(server_conf->lock));
     }
 
-    printf("[DEBUG] Closing connectiion\n");
+    // printf("[DEBUG] Closing connectiion\n");
+
     close(backendsockfd);
     close(clientsockfd);
 }

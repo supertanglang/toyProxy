@@ -65,7 +65,8 @@ main(int argc, char **argv)
            THREAD_NUM, THREADPOOL_SIZE);
 
     // starting server procedure
-    // Connect to the backend
+    // setup server config
+    pthread_mutex_init(&(server_conf.lock), NULL);
 
     // Starting binding and listening
     printf("[INFO] Starting server procedure\n");
@@ -113,6 +114,8 @@ main(int argc, char **argv)
 
     // DEBUG
     printf("[INFO] Starting server procedure\n");
+
+    pthread_mutex_destroy(&(server_conf.lock));
 
     return 0;
 }

@@ -10,12 +10,20 @@
 #define __SERVER_H__
 
 
+#include <pthread.h>
+
+
 // default value config
 #define MAX_SERVERS 8
+#define RESPONSE 15000 
+
 
 // server thread configuration
 typedef struct server_conf
 {
+    // server mutex
+    pthread_mutex_t lock;
+
     // client socket file
     int clientsockfd;
 
